@@ -1,40 +1,29 @@
 package com.kiev.algacoments.api.config;
 
-import org.springframework.beans.factory.annotation.Value;
+import com.kiev.algacoments.api.client.IModerationClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
-import java.time.Duration;
+import org.springframework.web.client.support.RestClientAdapter;
+import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 
 @Configuration
 public class RestClientConfig {
 
     @Bean
-    public RestClient moderationRestClient(@Value("${moderation.service.base-url}") String baseUrl) {
+    public RestClient moderationRestClient() {
         return RestClient.builder()
-                .baseUrl(baseUrl)
-                .requestFactory(new org.springframework.http.client.SimpleClientHttpRequestFactory())
-                .requestInterceptors(interceptors -> {
-                    // Configura o timeout aqui. O SimpleClientHttpRequestFactory suporta isso.
-                    interceptors.add((request, body, execution) -> {
-                        // O SimpleClientHttpRequestFactory não tem um timeout por request fácil de configurar aqui
-                        // A melhor abordagem é configurar a factory diretamente.
-                        return execution.execute(request, body);
-                    });
-                })
+                .baseUrl("http://localhost:8081") // URL base do ModerationService
+                .requestFactory(new SimpleClientHttpRequestFactory()) // Pode adicionar timeouts aqui
                 .build();
     }
-    
-    // Abordagem Alternativa e Melhor para Timeout
-    @Bean("moderationRestClientWithTimeout")
-    public RestClient restClientWithTimeout(@Value("${moderation.service.base-url}") String baseUrl) {
-        org.springframework.http.client.SimpleClientHttpRequestFactory requestFactory = new org.springframework.http.client.SimpleClientHttpRequestFactory();
-        requestFactory.setConnectTimeout(Duration.ofSeconds(5));
-        requestFactory.setReadTimeout(Duration.ofSeconds(5)); // Timeout para ler a resposta
 
-        return RestClient.builder()
-                .baseUrl(baseUrl)
-                .requestFactory(requestFactory)
-                .build();
+    @Bean
+    public IModerationClient moderationClient(RestClient moderationRestClient) {
+        RestClientAdapter adapter = RestClientAdapter.create(moderationRestClient);
+        HttpServiceProxyFactory factory = HttpServiceProxyFactory.builderFor(adapter).build();
+
+        return factory.createClient(IModerationClient.class);
     }
 }

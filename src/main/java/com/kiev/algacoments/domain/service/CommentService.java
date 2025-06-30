@@ -1,6 +1,6 @@
 package com.kiev.algacoments.domain.service;
 
-import com.kiev.algacoments.api.client.impl.ModerationImpl;
+import com.kiev.algacoments.api.client.IModerationClient;
 import com.kiev.algacoments.api.dto.request.ModerationInput;
 import com.kiev.algacoments.domain.exception.CommentNotApprovedException;
 import com.kiev.algacoments.domain.exception.ResourceNotFoundException;
@@ -22,9 +22,9 @@ import static com.kiev.algacoments.domain.model.CommentOutput.fromEntity;
 public class CommentService {
 
     private final CommentRepository commentRepository;
-    private final ModerationImpl moderationClient;
+    private final IModerationClient moderationClient;
 
-    public CommentService(CommentRepository commentRepository, ModerationImpl moderationClient) {
+    public CommentService(CommentRepository commentRepository, IModerationClient moderationClient) {
         this.commentRepository = commentRepository;
         this.moderationClient = moderationClient;
     }
@@ -34,12 +34,12 @@ public class CommentService {
         var newId = UUID.randomUUID();
         var moderationInput = new ModerationInput(input.text(), newId.toString());
         var moderationResponse = moderationClient.moderate(moderationInput);
-        if (!moderationResponse.approved()) {
-            throw new CommentNotApprovedException("Comentário rejeitado: " + moderationResponse.reason());
+        if (moderationResponse.approved()) {
+            var newComment = commentInputToComment(input, newId);
+            var savedComment = commentRepository.save(newComment);
+            return fromEntity(savedComment);
         }
-        var newComment = commentInputToComment(input, newId);
-        var savedComment = commentRepository.save(newComment);
-        return fromEntity(savedComment);
+        throw new CommentNotApprovedException("Comentário rejeitado: " + moderationResponse.reason());
     }
 
     public CommentOutput findById(UUID id) {
