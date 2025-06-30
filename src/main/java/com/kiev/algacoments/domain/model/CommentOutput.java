@@ -9,7 +9,6 @@ public record CommentOutput(
     String author,
     OffsetDateTime createdAt
 ) {
-    // Método de fábrica para facilitar a conversão da Entidade para DTO
     public static CommentOutput fromEntity(Comment comment) {
         return new CommentOutput(
             comment.getId(),
