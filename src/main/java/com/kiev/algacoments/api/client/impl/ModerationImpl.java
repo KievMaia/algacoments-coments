@@ -17,7 +17,7 @@ public class ModerationImpl implements IModerationClient {
 
     @Override
     public ModerationResponse moderate(ModerationInput input) {
-        return restClient.put()
+        return restClient.post()
                 .body(new ModerationInput(input.text(), input.commentId()))
                 .retrieve()
                 .body(ModerationResponse.class);
