@@ -28,13 +28,13 @@ public class CommentController {
 
     @GetMapping("/{id}")
     public ResponseEntity<CommentOutput> getById(@PathVariable UUID id) {
-        CommentOutput comment = commentService.findById(id);
+        var comment = commentService.findById(id);
         return ResponseEntity.ok(comment);
     }
 
     @GetMapping
-    public ResponseEntity<Page<CommentOutput>> getAll(@PageableDefault(size = 10, page = 0) Pageable pageable) {
-        Page<CommentOutput> commentsPage = commentService.findAll(pageable);
+    public ResponseEntity<Page<CommentOutput>> getAll(Pageable pageable) {
+        var commentsPage = commentService.findAll(pageable);
         return ResponseEntity.ok(commentsPage);
     }
 }

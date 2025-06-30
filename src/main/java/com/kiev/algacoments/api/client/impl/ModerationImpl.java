@@ -9,7 +9,7 @@ import org.springframework.web.client.RestClient;
 
 @Component
 public class ModerationImpl implements IModerationClient {
-    private RestClient restClient;
+    private final RestClient restClient;
 
     public ModerationImpl(RestClientFactory restClientFactory) {
         this.restClient = restClientFactory.moderationServiceRestClient();
